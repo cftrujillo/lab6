@@ -71,15 +71,32 @@ class MnistDataModule(L.LightningDataModule):
         datasets.MNIST(root=self.data_path, download=True)
         return
 
-    def setup(self, stage=None):
+    def setup(self, augment, stage=None):
         # Note transforms.ToTensor() scales input images
         # to 0-1 range
-        train = datasets.MNIST(
-            root=self.data_path,
-            train=True,
-            transform=transforms.ToTensor(),
-            download=False,
-        )
+        
+
+        if augment:
+            train = datasets.MNIST(
+                root=self.data_path,
+                train=True,
+                # https://pytorch.org/vision/0.13/transforms.html
+                transform=transforms.Compose([
+                    transforms.RandomHorizontalFlip(),
+                    transforms.RandomVerticalFlip(),
+                    transforms.RandomRotation(20),
+                    transforms.ToTensor(),
+                    transforms.RandomGrayscale(p=0.1)
+                ]),
+                download=False,
+            )
+        else:
+            train = datasets.MNIST(
+                root=self.data_path,
+                train=True,
+                transform=transforms.ToTensor(),
+                download=False,
+            )
 
         self.test = datasets.MNIST(
             root=self.data_path,
